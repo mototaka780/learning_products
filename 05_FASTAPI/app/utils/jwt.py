@@ -4,7 +4,7 @@ from jose import jwt, JWTError
 from crud.user import get_user_by_id   # ★ 追加
 from database import SessionLocal
 
-SECRET_KEY = "your-secret-key"
+SECRET_KEY = "xxxx-xxxxxx-xxx"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
