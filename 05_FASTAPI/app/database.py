@@ -8,7 +8,7 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 
 if not DATABASE_URL:
     # ローカル開発用のデフォルト
-    DATABASE_URL = "postgresql://postgres:moto0204Z%40@localhost:5432/india_market_db"
+    DATABASE_URL = "postgresql://postgres:xxxxxxxx@localhost:5432/india_market_db"
 
 # 2. エンジン作成
 engine = create_engine(
