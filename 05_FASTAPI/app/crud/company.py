@@ -11,9 +11,9 @@ def create_company(db: Session, company: CompanyCreate, user_id: UUID):
         city=company.city,
         country=company.country,
         employee_count=company.employee_count,
-        website=company.website,
+        website=str(company.website),
         notes=company.notes,
-        user_id=user_id  # ★ 追加
+        user_id=user_id
     )
     db.add(new_company)
     db.commit()
@@ -24,26 +24,32 @@ def create_company(db: Session, company: CompanyCreate, user_id: UUID):
 def get_company(db: Session, company_id: UUID, user_id: UUID):
     return db.query(Company).filter(
         Company.id == company_id,
-        Company.user_id == user_id  # ★ 自分の会社だけ取得
+        Company.user_id == user_id
     ).first()
 
 
 def get_companies(db: Session, user_id: UUID, skip: int = 0, limit: int = 100):
     return db.query(Company).filter(
-        Company.user_id == user_id  # ★ 自分の会社だけ一覧取得
+        Company.user_id == user_id
     ).offset(skip).limit(limit).all()
 
 
 def update_company(db: Session, company_id: UUID, company: CompanyUpdate, user_id: UUID):
     db_company = db.query(Company).filter(
         Company.id == company_id,
-        Company.user_id == user_id  # ★ 自分の会社だけ更新可能
+        Company.user_id == user_id
     ).first()
 
     if not db_company:
         return None
 
-    for key, value in company.model_dump(exclude_unset=True).items():
+    update_data = company.model_dump(exclude_unset=True)
+
+    # HttpUrl → str
+    if update_data.get("website") is not None:
+        update_data["website"] = str(update_data["website"])
+
+    for key, value in update_data.items():
         setattr(db_company, key, value)
 
     db.commit()
@@ -54,7 +60,7 @@ def update_company(db: Session, company_id: UUID, company: CompanyUpdate, user_i
 def delete_company(db: Session, company_id: UUID, user_id: UUID):
     db_company = db.query(Company).filter(
         Company.id == company_id,
-        Company.user_id == user_id  # ★ 自分の会社だけ削除可能
+        Company.user_id == user_id
     ).first()
 
     if not db_company:

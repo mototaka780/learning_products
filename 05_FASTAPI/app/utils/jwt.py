@@ -1,16 +1,14 @@
-from datetime import datetime, timedelta
+from config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
+from datetime import datetime, timedelta, timezone
 from jose import jwt, JWTError
 
 from crud.user import get_user_by_id   # ★ 追加
 from database import SessionLocal
 
-SECRET_KEY = "xxxx-xxxxxx-xxx"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 def create_access_token(data: dict):
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
