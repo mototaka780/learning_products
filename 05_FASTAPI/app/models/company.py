@@ -3,6 +3,7 @@ from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 
+from sqlalchemy.orm import relationship
 from database import Base
 
 class Company(Base):
@@ -17,11 +18,17 @@ class Company(Base):
     website = Column(String(255))
     notes = Column(String(500))
 
-    # ★ 追加：作成したユーザーの ID
+    # 作成したユーザーの ID
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
 
-    # ★ 追加：作成日時
+    # 作成日時
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    # ★ 追加：更新日時
+    # 更新日時
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    # ★ ここを追加（企業 → 案件 のリレーション）
+    projects = relationship("Project", back_populates="company")
+
+
+

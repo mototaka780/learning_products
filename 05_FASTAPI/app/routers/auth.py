@@ -8,7 +8,7 @@ from database import get_db
 from schemas.user import UserCreate, UserResponse
 from schemas.auth import LoginRequest, TokenResponse
 from utils.jwt import create_access_token
-from utils.jwt import get_current_user as jwt_current_user
+from utils.jwt import get_current_user_from_token
 
 
 router = APIRouter(
@@ -23,18 +23,9 @@ auth_scheme = HTTPBearer()
 # 認証済みユーザー取得
 # =========================================================
 def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(auth_scheme)
+    credentials: HTTPAuthorizationCredentials = Depends(auth_scheme),
 ):
-    user = jwt_current_user(credentials.credentials)
-
-    if not user:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid or expired token"
-        )
-
-    return user
-
+    return get_current_user_from_token(credentials.credentials)
 
 # =========================================================
 # ユーザー登録

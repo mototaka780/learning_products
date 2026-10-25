@@ -51,3 +51,4 @@ def test_me(client):
     data = response.json()
     assert data["username"] == "test_user"
     assert data["role"] == "admin"
+    

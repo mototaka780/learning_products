@@ -1,36 +1,59 @@
-from config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
-from datetime import datetime, timedelta, timezone
-from jose import jwt, JWTError
 
-from crud.user import get_user_by_id   # ★ 追加
+from datetime import datetime, timedelta, timezone
+
+from jose import jwt, JWTError
+from fastapi import HTTPException, status
+from sqlalchemy.orm import Session
+
+from crud.user import get_user_by_id
 from database import SessionLocal
+
+SECRET_KEY = "your-secret-key"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 
 def create_access_token(data: dict):
     to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.now(timezone.utc) + timedelta(
+        minutes=ACCESS_TOKEN_EXPIRE_MINUTES
+    )
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
-def get_current_user(token: str):
+def get_current_user_from_token(token: str):
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: str = payload.get("sub")
-        role: str = payload.get("role")
+        payload = jwt.decode(
+            token,
+            SECRET_KEY,
+            algorithms=[ALGORITHM],
+        )
+        user_id = payload.get("sub")
 
         if user_id is None:
-            return None
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token",
+            )
 
-        db = SessionLocal()
-        user = get_user_by_id(db, user_id)  # ★ UUID で検索
-        db.close()
+        db: Session = SessionLocal()
+        try:
+            user = get_user_by_id(db, user_id)
+        finally:
+            db.close()
 
         if user is None:
-            return None
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found",
+            )
 
-        user.role = role
         return user
 
     except JWTError:
-        return None
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
